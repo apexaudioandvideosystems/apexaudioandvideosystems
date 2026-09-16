@@ -188,10 +188,11 @@
       </div>
 
       <div>
-        <label>Featured Image URL</label>
-        <input id="featuredImage" type="url"
-          placeholder="https://...">
-      </div>
+    <label>Featured Project Image</label>
+    <input id="featuredImageFile" type="file" accept="image/*">
+    <input id="featuredImage" type="hidden">
+    <p id="imageUploadStatus"></p>
+</div>
 
     </div>
 
@@ -357,7 +358,36 @@
       showMessage("Please enter a project title.", false);
       return;
     }
+const imageFile = document.getElementById("featuredImageFile").files[0];
+let imageUrl = document.getElementById("featuredImage").value || null;
 
+if (imageFile) {
+  showMessage("Uploading image...", true);
+
+  const fileExt = imageFile.name.split(".").pop();
+  const fileName =
+    Date.now() + "-" +
+    Math.random().toString(36).substring(2) +
+    "." + fileExt;
+
+  const { error: uploadError } = await db.storage
+    .from("project-media")
+    .upload(fileName, imageFile);
+
+  if (uploadError) {
+    console.error(uploadError);
+    showMessage("Image upload failed: " + uploadError.message, false);
+    return;
+  }
+
+  const { data: publicUrlData } = db.storage
+    .from("project-media")
+    .getPublicUrl(fileName);
+
+  imageUrl = publicUrlData.publicUrl;
+
+  document.getElementById("featuredImage").value = imageUrl;
+}
     const record = {
       title: title,
       slug: slugify(title),
@@ -365,8 +395,7 @@
       description:
         document.getElementById("description").value.trim(),
 
-      featured_image_url:
-        document.getElementById("featuredImage").value.trim() || null,
+      featured_image_url: imageUrl,
 
       seo_title:
         document.getElementById("seoTitle").value.trim() || null,
