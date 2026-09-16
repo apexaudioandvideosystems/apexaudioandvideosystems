@@ -187,9 +187,21 @@
           Show TikTok on website
         </label>
       </div>
-    </div>
-
-    <button id="saveButton" type="button">
+    <div class="field">
+  <label for="google">Google Business Profile</label>
+  <input
+    type="url"
+    id="google"
+    placeholder="https://g.page/..."
+  >
+  <div class="enabled">
+    <input type="checkbox" id="google_enabled">
+    <label for="google_enabled" style="display:inline;">
+      Show Google on website
+    </label>
+  </div>
+</div>
+   <button id="saveButton" type="button">
       Save Social Media Links
     </button>
 
@@ -289,6 +301,7 @@ async function saveLinks() {
     "facebook",
     "instagram",
     "tiktok"
+    "google"
   ];
 
 
