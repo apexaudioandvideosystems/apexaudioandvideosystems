@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+
+  <title>Social Media | Apex Admin</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #080808;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111;
+      border-bottom: 1px solid #333;
+      padding: 20px;
+    }
+
+    .header-inner {
+      max-width: 900px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-weight: 800;
+      font-size: 22px;
+    }
+
+    .logo span {
+      color: #ff5a1f;
+    }
+
+    .back {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 0 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #aaa;
+      margin-bottom: 35px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid #333;
+      border-radius: 15px;
+      padding: 30px;
+    }
+
+    .social {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #080808;
+      color: white;
+      font-size: 16px;
+    }
+
+    .enabled {
+      margin-top: 10px;
+      color: #bbb;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 15px;
+      padding: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #ff5a1f;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 20px;
+      text-align: center;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">APEX <span>ADMIN</span></div>
+    <a class="back" href="/admin/">← Dashboard</a>
+  </div>
+</header>
+
+<main>
+
+  <h1>Social Media</h1>
+
+  <p class="subtitle">
+    Manage the social media links displayed on the Apex website.
+  </p>
+
+  <div class="card">
+
+    <div class="social">
+      <label for="facebook">Facebook</label>
+      <input
+        type="url"
+        id="facebook"
+        placeholder="https://facebook.com/..."
+      >
+      <div class="enabled">
+        <input type="checkbox" id="facebook_enabled">
+        <label for="facebook_enabled" style="display:inline;">
+          Show Facebook on website
+        </label>
+      </div>
+    </div>
+
+    <div class="social">
+      <label for="instagram">Instagram</label>
+      <input
+        type="url"
+        id="instagram"
+        placeholder="https://instagram.com/..."
+      >
+      <div class="enabled">
+        <input type="checkbox" id="instagram_enabled">
+        <label for="instagram_enabled" style="display:inline;">
+          Show Instagram on website
+        </label>
+      </div>
+    </div>
+
+    <div class="social">
+      <label for="tiktok">TikTok</label>
+      <input
+        type="url"
+        id="tiktok"
+        placeholder="https://tiktok.com/@..."
+      >
+      <div class="enabled">
+        <input type="checkbox" id="tiktok_enabled">
+        <label for="tiktok_enabled" style="display:inline;">
+          Show TikTok on website
+        </label>
+      </div>
+    </div>
+
+    <button id="saveButton" type="button">
+      Save Social Media Links
+    </button>
+
+    <div id="message"></div>
+
+  </div>
+
+</main>
+
+<script>
+
+const SUPABASE_URL =
+  "https://lexzgzmjugfdvqapyxav.supabase.co";
+
+const SUPABASE_KEY =
+  "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
+
+const supabaseClient =
+  window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+async function checkLogin() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) {
+    window.location.href = "/admin/";
+    return false;
+  }
+
+  return true;
+}
+
+
+async function loadLinks() {
+
+  const loggedIn = await checkLogin();
+
+  if (!loggedIn) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("social_links")
+      .select("platform,url,is_enabled");
+
+  if (error) {
+
+    document.getElementById("message").textContent =
+      "Could not load social media links.";
+
+    console.error(error);
+
+    return;
+  }
+
+  data.forEach(item => {
+
+    const platform =
+      String(item.platform).toLowerCase();
+
+    const input =
+      document.getElementById(platform);
+
+    const checkbox =
+      document.getElementById(platform + "_enabled");
+
+    if (input) {
+      input.value = item.url || "";
+    }
+
+    if (checkbox) {
+      checkbox.checked = item.is_enabled === true;
+    }
+
+  });
+
+}
+
+
+async function saveLinks() {
+
+  const button =
+    document.getElementById("saveButton");
+
+  const message =
+    document.getElementById("message");
+
+  button.disabled = true;
+  button.textContent = "Saving...";
+
+  message.textContent = "";
+
+
+  const platforms = [
+    "facebook",
+    "instagram",
+    "tiktok"
+  ];
+
+
+  for (const platform of platforms) {
+
+    const url =
+      document.getElementById(platform).value.trim();
+
+    const enabled =
+      document.getElementById(
+        platform + "_enabled"
+      ).checked;
+
+
+    const { error } =
+      await supabaseClient
+        .from("social_links")
+        .update({
+          url: url,
+          is_enabled: enabled,
+          updated_at: new Date().toISOString()
+        })
+        .eq("platform", platform);
+
+
+    if (error) {
+
+      console.error(error);
+
+      message.style.color = "#ff6b6b";
+
+      message.textContent =
+        "There was a problem saving your links.";
+
+      button.disabled = false;
+      button.textContent =
+        "Save Social Media Links";
+
+      return;
+    }
+
+  }
+
+
+  message.style.color = "#65d88b";
+
+  message.textContent =
+    "Social media links saved successfully!";
+
+  button.disabled = false;
+
+  button.textContent =
+    "Save Social Media Links";
+
+}
+
+
+document
+  .getElementById("saveButton")
+  .addEventListener("click", saveLinks);
+
+
+loadLinks();
+
+</script>
+
+</body>
+</html>
