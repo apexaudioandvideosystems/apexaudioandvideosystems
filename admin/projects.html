@@ -1,10 +1,534 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<title>Projects | Apex Admin</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#080808;color:#fff;font-family:Arial,Helvetica,sans-serif}
-.wrap{width:min(850px,92%);margin:auto;padding:45px 0}a{color:#ff6a00;text-decoration:none;font-weight:800}
-.card{margin-top:28px;background:#111;border:1px solid #303030;border-radius:16px;padding:30px}
-h1{font-size:40px;margin:22px 0 5px}p{color:#aaa;line-height:1.6}.status{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:999px;background:#29200f;color:#ffb14a;font-weight:800;font-size:13px}</style>
-</head><body><div class="wrap"><a href="index.html">← Back to Admin</a><h1>Projects</h1>
-<div class="card"><p>Add, edit, publish, and organize completed Apex projects.</p><span class="status">NEXT TO CONNECT</span>
-<p>This page is included in the dashboard now, but it will not change the live website until its Supabase table and editor are connected. This prevents unfinished controls from breaking your working site.</p></div></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Projects | Apex Admin</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #080808;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: auto;
+      padding: 35px 20px 80px;
+    }
+
+    a {
+      color: #ff6400;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: 42px;
+      margin: 25px 0 8px;
+    }
+
+    .subtitle {
+      color: #aaa;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #303030;
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 25px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 17px 0 7px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 13px;
+      background: #090909;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .checks {
+      display: flex;
+      gap: 25px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .checks label {
+      margin: 0;
+    }
+
+    .checks input {
+      width: auto;
+      margin-right: 7px;
+    }
+
+    button {
+      background: #ff6400;
+      color: #fff;
+      border: 0;
+      padding: 13px 22px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 22px;
+      margin-right: 8px;
+    }
+
+    button.secondary {
+      background: #333;
+    }
+
+    button.delete {
+      background: #b42318;
+    }
+
+    #message {
+      margin-top: 16px;
+      font-weight: 700;
+    }
+
+    .project {
+      border-top: 1px solid #333;
+      padding: 20px 0;
+    }
+
+    .project:first-child {
+      border-top: 0;
+    }
+
+    .project h3 {
+      margin: 0 0 8px;
+    }
+
+    .project p {
+      color: #aaa;
+      margin: 5px 0;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 20px;
+      background: #292929;
+      margin: 5px 5px 5px 0;
+      font-size: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+      h1 { font-size: 34px; }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <a href="index.html">← Back to Admin</a>
+
+  <h1>Projects</h1>
+  <p class="subtitle">
+    Add, edit, publish and organize Apex projects.
+  </p>
+
+  <div class="card">
+
+    <h2 id="formTitle">Add New Project</h2>
+
+    <input type="hidden" id="projectId">
+
+    <label>Project Title</label>
+    <input id="title" type="text"
+      placeholder="Example: Home Theater Installation">
+
+    <label>Description</label>
+    <textarea id="description"
+      placeholder="Describe the project..."></textarea>
+
+    <div class="grid">
+
+      <div>
+        <label>Project Date</label>
+        <input id="projectDate" type="date">
+      </div>
+
+      <div>
+        <label>Featured Image URL</label>
+        <input id="featuredImage" type="url"
+          placeholder="https://...">
+      </div>
+
+    </div>
+
+    <div class="grid">
+
+      <div>
+        <label>SEO Title</label>
+        <input id="seoTitle" type="text"
+          placeholder="SEO page title">
+      </div>
+
+      <div>
+        <label>SEO Description</label>
+        <input id="seoDescription" type="text"
+          placeholder="Google search description">
+      </div>
+
+    </div>
+
+    <div class="checks">
+
+      <label>
+        <input id="featured" type="checkbox">
+        Featured Project
+      </label>
+
+      <label>
+        <input id="published" type="checkbox" checked>
+        Published
+      </label>
+
+    </div>
+
+    <button onclick="saveProject()">Save Project</button>
+
+    <button
+      class="secondary"
+      id="cancelButton"
+      onclick="resetForm()"
+      style="display:none;">
+      Cancel Edit
+    </button>
+
+    <div id="message"></div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Your Projects</h2>
+
+    <div id="projectList">
+      Loading projects...
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const SUPABASE_URL =
+    "https://lexzgzmjugfdvqapyxav.supabase.co";
+
+  // Browser-safe publishable key only.
+  const SUPABASE_KEY =
+    "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
+
+  const db = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
+  let projects = [];
+
+  function slugify(text) {
+    return text
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+  }
+
+  function showMessage(text, success = true) {
+    const el = document.getElementById("message");
+    el.textContent = text;
+    el.style.color = success ? "#52d273" : "#ff6b6b";
+  }
+
+  async function loadProjects() {
+
+    const list = document.getElementById("projectList");
+
+    const { data, error } = await db
+      .from("projects")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      list.innerHTML =
+        "<p>Could not load projects: " +
+        escapeHtml(error.message) +
+        "</p>";
+      return;
+    }
+
+    projects = data || [];
+
+    if (!projects.length) {
+      list.innerHTML =
+        "<p>No projects yet. Add your first project above.</p>";
+      return;
+    }
+
+    list.innerHTML = projects.map(project => `
+      <div class="project">
+
+        <h3>${escapeHtml(project.title || "")}</h3>
+
+        <p>
+          ${escapeHtml(project.description || "")}
+        </p>
+
+        ${project.project_date
+          ? `<p>Date: ${escapeHtml(project.project_date)}</p>`
+          : ""}
+
+        <span class="badge">
+          ${project.is_published ? "Published" : "Draft"}
+        </span>
+
+        ${project.is_featured
+          ? `<span class="badge">Featured</span>`
+          : ""}
+
+        <br>
+
+        <button onclick="editProject('${project.id}')">
+          Edit
+        </button>
+
+        <button
+          class="delete"
+          onclick="deleteProject('${project.id}')">
+          Delete
+        </button>
+
+      </div>
+    `).join("");
+  }
+
+  async function saveProject() {
+
+    const id =
+      document.getElementById("projectId").value;
+
+    const title =
+      document.getElementById("title").value.trim();
+
+    if (!title) {
+      showMessage("Please enter a project title.", false);
+      return;
+    }
+
+    const record = {
+      title: title,
+      slug: slugify(title),
+
+      description:
+        document.getElementById("description").value.trim(),
+
+      featured_image_url:
+        document.getElementById("featuredImage").value.trim() || null,
+
+      seo_title:
+        document.getElementById("seoTitle").value.trim() || null,
+
+      seo_description:
+        document.getElementById("seoDescription").value.trim() || null,
+
+      project_date:
+        document.getElementById("projectDate").value || null,
+
+      is_featured:
+        document.getElementById("featured").checked,
+
+      is_published:
+        document.getElementById("published").checked,
+
+      updated_at:
+        new Date().toISOString()
+    };
+
+    let result;
+
+    if (id) {
+
+      result = await db
+        .from("projects")
+        .update(record)
+        .eq("id", id);
+
+    } else {
+
+      result = await db
+        .from("projects")
+        .insert([record]);
+
+    }
+
+    if (result.error) {
+      console.error(result.error);
+      showMessage(
+        "Error: " + result.error.message,
+        false
+      );
+      return;
+    }
+
+    showMessage(
+      id
+        ? "✓ Project updated successfully!"
+        : "✓ Project added successfully!"
+    );
+
+    resetForm(false);
+    await loadProjects();
+  }
+
+  function editProject(id) {
+
+    const project =
+      projects.find(item => item.id === id);
+
+    if (!project) return;
+
+    document.getElementById("projectId").value =
+      project.id;
+
+    document.getElementById("title").value =
+      project.title || "";
+
+    document.getElementById("description").value =
+      project.description || "";
+
+    document.getElementById("featuredImage").value =
+      project.featured_image_url || "";
+
+    document.getElementById("seoTitle").value =
+      project.seo_title || "";
+
+    document.getElementById("seoDescription").value =
+      project.seo_description || "";
+
+    document.getElementById("projectDate").value =
+      project.project_date || "";
+
+    document.getElementById("featured").checked =
+      !!project.is_featured;
+
+    document.getElementById("published").checked =
+      !!project.is_published;
+
+    document.getElementById("formTitle").textContent =
+      "Edit Project";
+
+    document.getElementById("cancelButton").style.display =
+      "inline-block";
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  }
+
+  async function deleteProject(id) {
+
+    if (!confirm(
+      "Are you sure you want to delete this project?"
+    )) {
+      return;
+    }
+
+    const { error } = await db
+      .from("projects")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+      showMessage(
+        "Delete failed: " + error.message,
+        false
+      );
+      return;
+    }
+
+    showMessage("✓ Project deleted.");
+    await loadProjects();
+  }
+
+  function resetForm(clearMessage = true) {
+
+    document.getElementById("projectId").value = "";
+    document.getElementById("title").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("featuredImage").value = "";
+    document.getElementById("seoTitle").value = "";
+    document.getElementById("seoDescription").value = "";
+    document.getElementById("projectDate").value = "";
+    document.getElementById("featured").checked = false;
+    document.getElementById("published").checked = true;
+
+    document.getElementById("formTitle").textContent =
+      "Add New Project";
+
+    document.getElementById("cancelButton").style.display =
+      "none";
+
+    if (clearMessage) {
+      document.getElementById("message").textContent = "";
+    }
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  loadProjects();
+</script>
+
+</body>
+</html>
