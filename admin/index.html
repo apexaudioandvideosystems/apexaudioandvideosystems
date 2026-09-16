@@ -1,1 +1,453 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Apex Website Admin</title><link rel="stylesheet" href="../styles.css"></head><body><div class="admin-shell"><div class="admin-bar"><img src="../assets/apex-logo.png" alt="Apex"><div><b>Website Admin</b><div class="note">CMS dashboard prototype — connect Supabase before launch</div></div></div><div class="admin-grid"><aside class="admin-nav"><a href="#">Dashboard</a><a href="#">Projects</a><a href="#">Photos & Videos</a><a href="#">Reviews</a><a href="#">Services</a><a href="#">SEO</a><a href="#">Site Settings</a><a href="../">View Website</a></aside><main class="admin-panel"><div class="eyebrow">CONTENT MANAGER</div><h1>Manage the Apex Website</h1><p class="note">This demonstrates the dashboard layout. Authentication, database records and uploads will become live when Supabase is connected.</p><div class="admin-cards"><div class="admin-card">Published Projects<b>3</b></div><div class="admin-card">Customer Reviews<b>3</b></div><div class="admin-card">Media Items<b>6</b></div></div><div class="upload-box"><h2>Add a New Project</h2><p>Upload project photos or video, add the project name, service, location and description, then publish it to Latest Projects.</p><button class="btn" onclick="alert('Connect Supabase Storage to enable uploads.')">UPLOAD PHOTOS / VIDEO</button><div class="seo-fields"><input placeholder="Project title"><input placeholder="Location (example: Hoover, AL)"><input placeholder="Service category"><input placeholder="SEO title"><textarea placeholder="Project description / SEO meta description"></textarea></div></div></main></div></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+
+  <title>Apex Admin | Apex Audio & Video Systems</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background: #080808;
+      color: white;
+      min-height: 100vh;
+    }
+
+    .orange {
+      color: #ff6a00;
+    }
+
+    /* LOGIN */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      background:
+        radial-gradient(circle at top, #252525 0%, #0b0b0b 48%, #050505 100%);
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 430px;
+      background: rgba(20,20,20,.96);
+      border: 1px solid #333;
+      border-radius: 18px;
+      padding: 40px;
+      box-shadow: 0 25px 70px rgba(0,0,0,.55);
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .brand h1 {
+      font-size: 34px;
+      margin-bottom: 8px;
+    }
+
+    .brand p {
+      color: #aaa;
+      font-size: 14px;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 7px;
+      font-size: 14px;
+      color: #ddd;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border-radius: 9px;
+      border: 1px solid #3b3b3b;
+      background: #111;
+      color: white;
+      outline: none;
+      font-size: 15px;
+    }
+
+    input:focus {
+      border-color: #ff6a00;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 14px;
+      border-radius: 9px;
+      background: #ff6a00;
+      color: white;
+      font-size: 16px;
+    }
+
+    .login-btn:hover {
+      background: #e85f00;
+    }
+
+    #message {
+      min-height: 22px;
+      margin-top: 16px;
+      text-align: center;
+      font-size: 14px;
+      color: #ff8b3d;
+    }
+
+    /* DASHBOARD */
+    #dashboard {
+      display: none;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #111;
+      border-bottom: 1px solid #292929;
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h2 {
+      font-size: 22px;
+    }
+
+    .logout-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      background: #292929;
+      color: white;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 55px 25px;
+    }
+
+    .welcome {
+      margin-bottom: 35px;
+    }
+
+    .welcome h1 {
+      font-size: 38px;
+      margin-bottom: 8px;
+    }
+
+    .welcome p {
+      color: #aaa;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #121212;
+      border: 1px solid #292929;
+      border-radius: 14px;
+      padding: 25px;
+      min-height: 150px;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+
+    .card p {
+      color: #999;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .card span {
+      display: inline-block;
+      color: #ff6a00;
+      margin-top: 18px;
+      font-weight: bold;
+    }
+
+    @media (max-width: 600px) {
+      .login-card {
+        padding: 28px 22px;
+      }
+
+      .welcome h1 {
+        font-size: 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<section id="loginScreen">
+
+  <div class="login-card">
+
+    <div class="brand">
+      <h1>APEX<span class="orange">.</span></h1>
+      <p>Audio & Video Systems</p>
+    </div>
+
+    <h2>Admin Login</h2>
+
+    <form id="loginForm">
+
+      <label for="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        placeholder="Email address"
+        autocomplete="email"
+        required
+      >
+
+      <label for="password">Password</label>
+      <input
+        id="password"
+        type="password"
+        placeholder="Password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button class="login-btn" type="submit">
+        Sign In
+      </button>
+
+      <div id="message"></div>
+
+    </form>
+
+  </div>
+
+</section>
+
+
+<section id="dashboard">
+
+  <header>
+
+    <h2>
+      APEX <span class="orange">ADMIN</span>
+    </h2>
+
+    <button class="logout-btn" id="logoutButton">
+      Log Out
+    </button>
+
+  </header>
+
+  <main>
+
+    <div class="welcome">
+
+      <h1>Website Dashboard</h1>
+
+      <p>
+        Manage Apex Audio & Video Systems from one place.
+      </p>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+      <div class="card">
+        <h3>Projects</h3>
+        <p>Add completed installations and project information.</p>
+        <span>Coming next →</span>
+      </div>
+
+      <div class="card">
+        <h3>Photos & Videos</h3>
+        <p>Upload installation photos and project videos.</p>
+        <span>Coming next →</span>
+      </div>
+
+      <div class="card">
+        <h3>Services</h3>
+        <p>Edit services and add reference photos.</p>
+        <span>Coming next →</span>
+      </div>
+
+      <div class="card">
+        <h3>Reviews</h3>
+        <p>Add customer testimonials to your website.</p>
+        <span>Coming next →</span>
+      </div>
+
+      <div class="card">
+        <h3>Social Media</h3>
+        <p>Manage Facebook, Instagram and TikTok links.</p>
+        <span>Coming next →</span>
+      </div>
+
+      <div class="card">
+        <h3>Website Settings</h3>
+        <p>Manage general Apex website information.</p>
+        <span>Coming next →</span>
+      </div>
+
+    </div>
+
+  </main>
+
+</section>
+
+
+<script>
+
+const SUPABASE_URL =
+  "https://lexzgzmjugfdvqapyxav.supabase.co";
+
+const SUPABASE_PUBLISHABLE_KEY =
+  "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY
+);
+
+
+const loginScreen =
+  document.getElementById("loginScreen");
+
+const dashboard =
+  document.getElementById("dashboard");
+
+const loginForm =
+  document.getElementById("loginForm");
+
+const message =
+  document.getElementById("message");
+
+const logoutButton =
+  document.getElementById("logoutButton");
+
+
+function showLogin() {
+
+  loginScreen.style.display = "flex";
+  dashboard.style.display = "none";
+
+}
+
+
+function showDashboard() {
+
+  loginScreen.style.display = "none";
+  dashboard.style.display = "block";
+
+}
+
+
+async function checkSession() {
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (session) {
+    showDashboard();
+  } else {
+    showLogin();
+  }
+
+}
+
+
+loginForm.addEventListener("submit", async (event) => {
+
+  event.preventDefault();
+
+  message.textContent = "Signing in...";
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const password =
+    document.getElementById("password").value;
+
+
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+
+  if (error) {
+
+    message.textContent =
+      "Login failed: " + error.message;
+
+    return;
+  }
+
+
+  if (data.session) {
+
+    message.textContent = "";
+
+    loginForm.reset();
+
+    showDashboard();
+
+  }
+
+});
+
+
+logoutButton.addEventListener("click", async () => {
+
+  await supabaseClient.auth.signOut();
+
+  showLogin();
+
+});
+
+
+supabaseClient.auth.onAuthStateChange(
+  (_event, session) => {
+
+    if (session) {
+      showDashboard();
+    } else {
+      showLogin();
+    }
+
+  }
+);
+
+
+checkSession();
+
+</script>
+
+</body>
+</html>
