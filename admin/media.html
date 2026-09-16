@@ -1,10 +1,792 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
-<title>Photos & Videos | Apex Admin</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#080808;color:#fff;font-family:Arial,Helvetica,sans-serif}
-.wrap{width:min(850px,92%);margin:auto;padding:45px 0}a{color:#ff6a00;text-decoration:none;font-weight:800}
-.card{margin-top:28px;background:#111;border:1px solid #303030;border-radius:16px;padding:30px}
-h1{font-size:40px;margin:22px 0 5px}p{color:#aaa;line-height:1.6}.status{display:inline-block;margin-top:10px;padding:8px 12px;border-radius:999px;background:#29200f;color:#ffb14a;font-weight:800;font-size:13px}</style>
-</head><body><div class="wrap"><a href="index.html">← Back to Admin</a><h1>Photos & Videos</h1>
-<div class="card"><p>Manage website photos and videos.</p><span class="status">NEXT TO CONNECT</span>
-<p>This page is included in the dashboard now, but it will not change the live website until its Supabase table and editor are connected. This prevents unfinished controls from breaking your working site.</p></div></div></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Photos & Videos | Apex Admin</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #080808;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .wrap {
+      width: min(1100px, 92%);
+      margin: auto;
+      padding: 40px 0 70px;
+    }
+
+    a {
+      color: #ff7a32;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: 40px;
+      margin: 18px 0 8px;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .orange {
+      color: #ff7a32;
+    }
+
+    .muted {
+      color: #aaa;
+    }
+
+    .card {
+      background: #111;
+      border: 1px solid #292929;
+      border-radius: 16px;
+      padding: 24px;
+      margin-top: 24px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 7px;
+      color: #ddd;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      background: #090909;
+      color: #fff;
+      border: 1px solid #333;
+      border-radius: 9px;
+      padding: 13px;
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    button {
+      border: 0;
+      border-radius: 9px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #ff7a32;
+      color: #fff;
+    }
+
+    .danger {
+      background: #a52a2a;
+      color: #fff;
+    }
+
+    .secondary {
+      background: #292929;
+      color: #fff;
+    }
+
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .status.success {
+      display: block;
+      background: #12351d;
+      color: #9ff0b2;
+    }
+
+    .status.error {
+      display: block;
+      background: #421616;
+      color: #ffaaaa;
+    }
+
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 20px;
+    }
+
+    .media-item {
+      background: #111;
+      border: 1px solid #292929;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .media-preview {
+      width: 100%;
+      height: 210px;
+      object-fit: cover;
+      display: block;
+      background: #050505;
+    }
+
+    .media-info {
+      padding: 16px;
+    }
+
+    .media-info h3 {
+      margin: 0 0 8px;
+    }
+
+    .media-info p {
+      color: #aaa;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #ff7a32;
+      color: #fff;
+      padding: 5px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 35px;
+      color: #aaa;
+      border: 1px dashed #333;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .form-grid,
+      .media-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <a href="/admin/">← Back to Admin</a>
+
+    <h1>Photos <span class="orange">& Videos</span></h1>
+
+    <p class="muted">
+      Upload and manage photos and videos for the Apex Audio & Video Systems website.
+    </p>
+
+    <div class="card">
+
+      <h2>Add New Media</h2>
+
+      <div class="form-grid">
+
+        <div>
+          <label for="title">Title</label>
+          <input
+            id="title"
+            type="text"
+            placeholder="Example: Outdoor TV Installation"
+          >
+        </div>
+
+        <div>
+          <label for="mediaType">Media Type</label>
+          <select id="mediaType">
+            <option value="image">Photo</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+
+        <div class="full">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            placeholder="Describe the installation or project..."
+          ></textarea>
+        </div>
+
+        <div class="full">
+          <label for="file">Choose Photo or Video</label>
+          <input
+            id="file"
+            type="file"
+            accept="image/*,video/*"
+          >
+        </div>
+
+        <div class="full">
+          <button
+            class="primary"
+            id="uploadButton"
+            type="button"
+            onclick="uploadMedia()"
+          >
+            Upload & Publish
+          </button>
+        </div>
+
+      </div>
+
+      <div id="status" class="status"></div>
+
+    </div>
+
+
+    <div class="card">
+
+      <h2>Website Media</h2>
+
+      <p class="muted">
+        Photos and videos saved in your Supabase media library.
+      </p>
+
+      <div id="mediaList">
+        <div class="empty">Loading media...</div>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+    const SUPABASE_URL =
+      "https://lexzgzmjugfdvqapyxav.supabase.co";
+
+    const SUPABASE_KEY =
+      "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
+
+    const client = supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+
+    /*
+      IMPORTANT:
+      Your existing Supabase Storage bucket is named project-media.
+      We will reuse it for the media dashboard.
+    */
+    const STORAGE_BUCKET = "project-media";
+
+
+    function showStatus(message, type = "success") {
+
+      const status = document.getElementById("status");
+
+      status.textContent = message;
+
+      status.className =
+        "status " + (type === "error" ? "error" : "success");
+    }
+
+
+    function clearStatus() {
+
+      const status = document.getElementById("status");
+
+      status.textContent = "";
+      status.className = "status";
+    }
+
+
+    function escapeHTML(value) {
+
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+
+    async function uploadMedia() {
+
+      clearStatus();
+
+      const title =
+        document.getElementById("title").value.trim();
+
+      const description =
+        document.getElementById("description").value.trim();
+
+      const mediaType =
+        document.getElementById("mediaType").value;
+
+      const fileInput =
+        document.getElementById("file");
+
+      const file =
+        fileInput.files[0];
+
+      const button =
+        document.getElementById("uploadButton");
+
+
+      if (!title) {
+
+        showStatus(
+          "Please enter a title.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      if (!file) {
+
+        showStatus(
+          "Please choose a photo or video.",
+          "error"
+        );
+
+        return;
+      }
+
+
+      try {
+
+        button.disabled = true;
+        button.textContent = "Uploading...";
+
+
+        const safeName =
+          file.name
+            .replace(/[^a-zA-Z0-9._-]/g, "-")
+            .toLowerCase();
+
+        const fileName =
+          "media/" +
+          Date.now() +
+          "-" +
+          safeName;
+
+
+        const {
+          data: uploadData,
+          error: uploadError
+        } =
+          await client.storage
+            .from(STORAGE_BUCKET)
+            .upload(
+              fileName,
+              file,
+              {
+                cacheControl: "3600",
+                upsert: false
+              }
+            );
+
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+
+        const {
+          data: publicURLData
+        } =
+          client.storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(fileName);
+
+
+        const publicURL =
+          publicURLData.publicUrl;
+
+
+        const {
+          error: insertError
+        } =
+          await client
+            .from("media")
+            .insert({
+              title: title,
+              description: description || null,
+              media_url: publicURL,
+              media_type: mediaType
+            });
+
+
+        if (insertError) {
+
+          /*
+            If the database insert fails after the file uploaded,
+            remove the uploaded file so it does not become orphaned.
+          */
+
+          await client.storage
+            .from(STORAGE_BUCKET)
+            .remove([fileName]);
+
+          throw insertError;
+        }
+
+
+        showStatus(
+          "Media uploaded successfully!"
+        );
+
+
+        document.getElementById("title").value = "";
+        document.getElementById("description").value = "";
+        document.getElementById("file").value = "";
+        document.getElementById("mediaType").value = "image";
+
+
+        await loadMedia();
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showStatus(
+          error.message ||
+          "Upload failed. Check your Supabase permissions.",
+          "error"
+        );
+
+      }
+
+      finally {
+
+        button.disabled = false;
+        button.textContent = "Upload & Publish";
+
+      }
+
+    }
+
+
+    async function loadMedia() {
+
+      const container =
+        document.getElementById("mediaList");
+
+
+      container.innerHTML =
+        '<div class="empty">Loading media...</div>';
+
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await client
+            .from("media")
+            .select("*")
+            .order(
+              "created_at",
+              {
+                ascending: false
+              }
+            );
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        if (!data || data.length === 0) {
+
+          container.innerHTML =
+            '<div class="empty">' +
+            'No photos or videos yet. Upload your first one above.' +
+            '</div>';
+
+          return;
+        }
+
+
+        const grid =
+          document.createElement("div");
+
+        grid.className =
+          "media-grid";
+
+
+        data.forEach(item => {
+
+          const card =
+            document.createElement("div");
+
+          card.className =
+            "media-item";
+
+
+          let preview = "";
+
+
+          if (item.media_type === "video") {
+
+            preview = `
+              <video
+                class="media-preview"
+                controls
+                preload="metadata"
+              >
+                <source src="${escapeHTML(item.media_url)}">
+              </video>
+            `;
+
+          }
+
+          else {
+
+            preview = `
+              <img
+                class="media-preview"
+                src="${escapeHTML(item.media_url)}"
+                alt="${escapeHTML(item.title || "Apex project")}"
+                loading="lazy"
+              >
+            `;
+
+          }
+
+
+          card.innerHTML = `
+
+            ${preview}
+
+            <div class="media-info">
+
+              <span class="badge">
+                ${escapeHTML(item.media_type || "image")}
+              </span>
+
+              <h3>
+                ${escapeHTML(item.title || "Untitled")}
+              </h3>
+
+              ${
+                item.description
+                  ? `<p>${escapeHTML(item.description)}</p>`
+                  : ""
+              }
+
+              <div class="actions">
+
+                <a
+                  href="${escapeHTML(item.media_url)}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <button
+                    class="secondary"
+                    type="button"
+                  >
+                    View
+                  </button>
+                </a>
+
+                <button
+                  class="danger"
+                  type="button"
+                  onclick="deleteMedia(
+                    '${item.id}',
+                    '${encodeURIComponent(item.media_url)}'
+                  )"
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            </div>
+          `;
+
+
+          grid.appendChild(card);
+
+        });
+
+
+        container.innerHTML = "";
+        container.appendChild(grid);
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        container.innerHTML =
+          '<div class="empty">' +
+          'Unable to load media.<br><br>' +
+          escapeHTML(error.message || "") +
+          '</div>';
+
+      }
+
+    }
+
+
+    async function deleteMedia(
+      id,
+      encodedURL
+    ) {
+
+      const confirmed =
+        confirm(
+          "Delete this photo/video? This cannot be undone."
+        );
+
+
+      if (!confirmed) {
+        return;
+      }
+
+
+      try {
+
+        const mediaURL =
+          decodeURIComponent(encodedURL);
+
+
+        /*
+          Extract the path after /project-media/
+          so the Storage object can also be deleted.
+        */
+
+        let storagePath = null;
+
+        const marker =
+          "/project-media/";
+
+        const markerIndex =
+          mediaURL.indexOf(marker);
+
+
+        if (markerIndex !== -1) {
+
+          storagePath =
+            decodeURIComponent(
+              mediaURL.substring(
+                markerIndex + marker.length
+              )
+            );
+
+        }
+
+
+        const {
+          error: databaseError
+        } =
+          await client
+            .from("media")
+            .delete()
+            .eq("id", id);
+
+
+        if (databaseError) {
+          throw databaseError;
+        }
+
+
+        if (storagePath) {
+
+          const {
+            error: storageError
+          } =
+            await client.storage
+              .from(STORAGE_BUCKET)
+              .remove([storagePath]);
+
+
+          if (storageError) {
+            console.warn(
+              "Database row deleted, but Storage file could not be removed:",
+              storageError
+            );
+          }
+
+        }
+
+
+        showStatus(
+          "Media deleted successfully."
+        );
+
+
+        await loadMedia();
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showStatus(
+          error.message ||
+          "Unable to delete media.",
+          "error"
+        );
+
+      }
+
+    }
+
+
+    loadMedia();
+
+  </script>
+
+</body>
+</html>
