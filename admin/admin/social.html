@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Social Media | Apex Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#080808;color:#fff}.wrap{width:min(850px,92%);margin:auto;padding:45px 0}a{color:#ff6a00;text-decoration:none;font-weight:700}h1{font-size:38px;margin:22px 0 5px}.muted{color:#aaa;margin-bottom:28px}.card{background:#111;border:1px solid #303030;border-radius:16px;padding:28px}.field{margin-bottom:25px}label{display:block;font-weight:700;margin-bottom:9px}input[type=url]{width:100%;padding:14px;border:1px solid #4b4b4b;border-radius:8px;background:#181818;color:#fff;font-size:16px}.check{display:flex;gap:9px;align-items:center;margin-top:10px}.check label{margin:0;font-size:14px}input[type=checkbox]{width:18px;height:18px}button{width:100%;padding:16px;border:0;border-radius:8px;background:linear-gradient(90deg,#ff3d00,#ff7900);color:#fff;font-size:16px;font-weight:800;cursor:pointer}button:disabled{opacity:.55}#msg{min-height:25px;margin-top:17px;text-align:center;font-weight:700}
+</style></head><body><div class="wrap"><a href="index.html">← Back to Admin</a><h1>Social Media</h1><p class="muted">Update the links shown on the public Apex website.</p>
+<div class="card">
+<div class="field"><label>Facebook</label><input id="facebook" type="url" placeholder="https://facebook.com/..."><div class="check"><input id="facebook_enabled" type="checkbox"><label for="facebook_enabled">Show Facebook on website</label></div></div>
+<div class="field"><label>Instagram</label><input id="instagram" type="url" placeholder="https://instagram.com/..."><div class="check"><input id="instagram_enabled" type="checkbox"><label for="instagram_enabled">Show Instagram on website</label></div></div>
+<div class="field"><label>TikTok</label><input id="tiktok" type="url" placeholder="https://tiktok.com/@..."><div class="check"><input id="tiktok_enabled" type="checkbox"><label for="tiktok_enabled">Show TikTok on website</label></div></div>
+<div class="field"><label>Google Business Profile</label><input id="google" type="url" placeholder="https://share.google/..."><div class="check"><input id="google_enabled" type="checkbox"><label for="google_enabled">Show Google on website</label></div></div>
+<button id="save" type="button">Save Social Media Links</button><div id="msg"></div></div></div>
+<script>
+const client=supabase.createClient("https://lexzgzmjugfdvqapyxav.supabase.co","sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH");
+const platforms=["facebook","instagram","tiktok","google"];
+const msg=document.getElementById("msg"),save=document.getElementById("save");
+function note(t,bad=false){msg.textContent=t;msg.style.color=bad?"#ff6666":"#4ade80"}
+async function requireLogin(){
+ const {data:{session}}=await client.auth.getSession();
+ if(!session){location.href="index.html";return false} return true;
+}
+async function load(){
+ if(!(await requireLogin())) return;
+ const {data,error}=await client.from("social_links").select("platform,url,is_enabled");
+ if(error){note("Load error: "+error.message,true);return}
+ (data||[]).forEach(r=>{let p=String(r.platform).toLowerCase(),i=document.getElementById(p),c=document.getElementById(p+"_enabled");if(i)i.value=r.url||"";if(c)c.checked=r.is_enabled===true});
+}
+save.addEventListener("click",async()=>{
+ if(!(await requireLogin())) return;
+ save.disabled=true;save.textContent="Saving...";note("");
+ try{
+   for(const p of platforms){
+     const url=document.getElementById(p).value.trim(),enabled=document.getElementById(p+"_enabled").checked;
+     const {error}=await client.from("social_links").upsert({platform:p,url,is_enabled:enabled,updated_at:new Date().toISOString()},{onConflict:"platform"});
+     if(error)throw error;
+   }
+   note("✓ Social media links saved successfully!");
+ }catch(e){note("Save error: "+e.message,true)}finally{save.disabled=false;save.textContent="Save Social Media Links"}
+});
+load();
+</script></body></html>
