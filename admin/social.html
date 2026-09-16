@@ -1,372 +1,294 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="robots" content="noindex,nofollow">
-
-  <title>Social Media | Apex Admin</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #080808;
-      color: #fff;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #111;
-      border-bottom: 1px solid #333;
-      padding: 20px;
-    }
-
-    .header-inner {
-      max-width: 900px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .logo {
-      font-weight: 800;
-      font-size: 22px;
-    }
-
-    .logo span {
-      color: #ff5a1f;
-    }
-
-    .back {
-      color: #fff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    main {
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 0 20px;
-    }
-
-    h1 {
-      font-size: 36px;
-      margin-bottom: 8px;
-    }
-
-    .subtitle {
-      color: #aaa;
-      margin-bottom: 35px;
-    }
-
-    .card {
-      background: #121212;
-      border: 1px solid #333;
-      border-radius: 15px;
-      padding: 30px;
-    }
-
-    .social {
-      margin-bottom: 25px;
-    }
-
-    label {
-      display: block;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
-
-    input[type="url"] {
-      width: 100%;
-      padding: 14px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #080808;
-      color: white;
-      font-size: 16px;
-    }
-
-    .enabled {
-      margin-top: 10px;
-      color: #bbb;
-    }
-
-    button {
-      width: 100%;
-      margin-top: 15px;
-      padding: 15px;
-      border: none;
-      border-radius: 8px;
-      background: #ff5a1f;
-      color: white;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: .6;
-      cursor: not-allowed;
-    }
-
-    #message {
-      margin-top: 20px;
-      text-align: center;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-
-<header>
-  <div class="header-inner">
-    <div class="logo">APEX <span>ADMIN</span></div>
-    <a class="back" href="/admin/">← Dashboard</a>
-  </div>
-</header>
-
-<main>
-
-  <h1>Social Media</h1>
-
-  <p class="subtitle">
-    Manage the social media links displayed on the Apex website.
-  </p>
-
-  <div class="card">
-
-    <div class="social">
-      <label for="facebook">Facebook</label>
-      <input
-        type="url"
-        id="facebook"
-        placeholder="https://facebook.com/..."
-      >
-      <div class="enabled">
-        <input type="checkbox" id="facebook_enabled">
-        <label for="facebook_enabled" style="display:inline;">
-          Show Facebook on website
-        </label>
-      </div>
-    </div>
-
-    <div class="social">
-      <label for="instagram">Instagram</label>
-      <input
-        type="url"
-        id="instagram"
-        placeholder="https://instagram.com/..."
-      >
-      <div class="enabled">
-        <input type="checkbox" id="instagram_enabled">
-        <label for="instagram_enabled" style="display:inline;">
-          Show Instagram on website
-        </label>
-      </div>
-    </div>
-
-    <div class="social">
-      <label for="tiktok">TikTok</label>
-      <input
-        type="url"
-        id="tiktok"
-        placeholder="https://tiktok.com/@..."
-      >
-      <div class="enabled">
-        <input type="checkbox" id="tiktok_enabled">
-        <label for="tiktok_enabled" style="display:inline;">
-          Show TikTok on website
-        </label>
-      </div>
-    <div class="field">
-  <label for="google">Google Business Profile</label>
-  <input
-    type="url"
-    id="google"
-    placeholder="https://g.page/..."
-  >
-  <div class="enabled">
-    <input type="checkbox" id="google_enabled">
-    <label for="google_enabled" style="display:inline;">
-      Show Google on website
-    </label>
-  </div>
-</div>
-   <button id="saveButton" type="button">
-      Save Social Media Links
-    </button>
-
-    <div id="message"></div>
-
-  </div>
-
-</main>
-
 <script>
+document.addEventListener("DOMContentLoaded", async function () {
 
-const SUPABASE_URL =
-  "https://lexzgzmjugfdvqapyxav.supabase.co";
+  // ==========================================
+  // SUPABASE CONNECTION
+  // ==========================================
 
-const SUPABASE_KEY =
-  "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
+  const SUPABASE_URL =
+    "https://lexzgzmjugfdvqapyxav.supabase.co";
 
-const supabaseClient =
-  window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const SUPABASE_KEY =
+    "sb_publishable_0Q9BDbrZenQqZCTozIU-kA_G6SvjGGH";
 
-
-async function checkLogin() {
-
-  const {
-    data: { session }
-  } = await supabaseClient.auth.getSession();
-
-  if (!session) {
-    window.location.href = "/admin/";
-    return false;
-  }
-
-  return true;
-}
+  const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
 
 
-async function loadLinks() {
+  // ==========================================
+  // SOCIAL MEDIA PLATFORMS
+  // These names must match the "platform"
+  // column in your Supabase social_links table.
+  // ==========================================
 
-  const loggedIn = await checkLogin();
-
-  if (!loggedIn) return;
-
-  const { data, error } =
-    await supabaseClient
-      .from("social_links")
-      .select("platform,url,is_enabled");
-
-  if (error) {
-
-    document.getElementById("message").textContent =
-      "Could not load social media links.";
-
-    console.error(error);
-
-    return;
-  }
-
-  data.forEach(item => {
-
-    const platform =
-      String(item.platform).toLowerCase();
-
-    const input =
-      document.getElementById(platform);
-
-    const checkbox =
-      document.getElementById(platform + "_enabled");
-
-    if (input) {
-      input.value = item.url || "";
-    }
-
-    if (checkbox) {
-      checkbox.checked = item.is_enabled === true;
-    }
-
-  });
-
-}
+  const platforms = [
+    "facebook",
+    "instagram",
+    "tiktok",
+    "google"
+  ];
 
 
-async function saveLinks() {
+  // ==========================================
+  // PAGE ELEMENTS
+  // ==========================================
 
-  const button =
+  const saveButton =
     document.getElementById("saveButton");
 
   const message =
     document.getElementById("message");
 
-  button.disabled = true;
-  button.textContent = "Saving...";
 
-  message.textContent = "";
+  // ==========================================
+  // DISPLAY MESSAGE
+  // ==========================================
 
+  function showMessage(text, isError = false) {
 
-  const platforms = [
-    "facebook",
-    "instagram",
-    "tiktok"
-    "google"
-  ];
+    if (!message) {
+      console.log(text);
+      return;
+    }
 
+    message.textContent = text;
 
-  for (const platform of platforms) {
+    message.style.marginTop = "15px";
+    message.style.fontWeight = "bold";
 
-    const url =
-      document.getElementById(platform).value.trim();
-
-    const enabled =
-      document.getElementById(
-        platform + "_enabled"
-      ).checked;
-
-
-    const { error } =
-      await supabaseClient
-        .from("social_links")
-        .update({
-          url: url,
-          is_enabled: enabled,
-          updated_at: new Date().toISOString()
-        })
-        .eq("platform", platform);
-
-
-    if (error) {
-
-      console.error(error);
-
+    if (isError) {
       message.style.color = "#ff6b6b";
+    } else {
+      message.style.color = "#4ade80";
+    }
+  }
 
-      message.textContent =
-        "There was a problem saving your links.";
 
-      button.disabled = false;
-      button.textContent =
-        "Save Social Media Links";
+  // ==========================================
+  // LOAD EXISTING LINKS FROM SUPABASE
+  // ==========================================
+
+  async function loadLinks() {
+
+    try {
+
+      const { data, error } =
+        await supabaseClient
+          .from("social_links")
+          .select("platform,url,is_enabled");
+
+      if (error) {
+        throw error;
+      }
+
+      if (!data) {
+        return;
+      }
+
+
+      data.forEach(function (row) {
+
+        const platform = row.platform;
+
+        const urlInput =
+          document.getElementById(platform);
+
+        const enabledCheckbox =
+          document.getElementById(
+            platform + "_enabled"
+          );
+
+
+        if (urlInput) {
+          urlInput.value = row.url || "";
+        }
+
+
+        if (enabledCheckbox) {
+          enabledCheckbox.checked =
+            row.is_enabled === true;
+        }
+
+      });
+
+
+      console.log(
+        "Social media links loaded successfully."
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Error loading social links:",
+        error
+      );
+
+      showMessage(
+        "Could not load saved links: " +
+        error.message,
+        true
+      );
+    }
+  }
+
+
+  // ==========================================
+  // SAVE LINKS TO SUPABASE
+  // ==========================================
+
+  async function saveLinks() {
+
+    if (!saveButton) {
+      console.error(
+        'Could not find button with id="saveButton".'
+      );
 
       return;
     }
 
+
+    saveButton.disabled = true;
+    saveButton.textContent = "Saving...";
+
+    showMessage("");
+
+
+    try {
+
+      for (const platform of platforms) {
+
+        const urlInput =
+          document.getElementById(platform);
+
+        const enabledCheckbox =
+          document.getElementById(
+            platform + "_enabled"
+          );
+
+
+        if (!urlInput) {
+
+          throw new Error(
+            'Missing input id="' +
+            platform +
+            '"'
+          );
+
+        }
+
+
+        if (!enabledCheckbox) {
+
+          throw new Error(
+            'Missing checkbox id="' +
+            platform +
+            '_enabled"'
+          );
+
+        }
+
+
+        const url =
+          urlInput.value.trim();
+
+        const enabled =
+          enabledCheckbox.checked;
+
+
+        console.log(
+          "Saving:",
+          platform,
+          url,
+          enabled
+        );
+
+
+        const { data, error } =
+          await supabaseClient
+            .from("social_links")
+            .update({
+              url: url,
+              is_enabled: enabled,
+              updated_at:
+                new Date().toISOString()
+            })
+            .eq("platform", platform)
+            .select();
+
+
+        if (error) {
+          throw error;
+        }
+
+
+        console.log(
+          platform +
+          " saved successfully:",
+          data
+        );
+
+      }
+
+
+      showMessage(
+        "✓ Social media links saved successfully!"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "SAVE ERROR:",
+        error
+      );
+
+
+      showMessage(
+        "Error saving links: " +
+        error.message,
+        true
+      );
+
+
+    } finally {
+
+      saveButton.disabled = false;
+
+      saveButton.textContent =
+        "Save Social Media Links";
+
+    }
   }
 
 
-  message.style.color = "#65d88b";
+  // ==========================================
+  // SAVE BUTTON
+  // ==========================================
 
-  message.textContent =
-    "Social media links saved successfully!";
+  if (saveButton) {
 
-  button.disabled = false;
+    saveButton.addEventListener(
+      "click",
+      saveLinks
+    );
 
-  button.textContent =
-    "Save Social Media Links";
+  } else {
 
-}
+    console.error(
+      'Could not find button with id="saveButton".'
+    );
 
-
-document
-  .getElementById("saveButton")
-  .addEventListener("click", saveLinks);
+  }
 
 
-loadLinks();
+  // ==========================================
+  // LOAD SAVED INFORMATION WHEN PAGE OPENS
+  // ==========================================
 
+  await loadLinks();
+
+});
 </script>
-
-</body>
-</html>
